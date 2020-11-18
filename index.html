@@ -60,7 +60,7 @@
                                     <div class="input-group-prepend">
                                         <label class="input-group-text" for="filterExtra">Extra</label>
                                     </div>
-                                    <input id="filterExtra" type="text" name="extra" class="form-control" placeholder="Extra"/>
+                                    <input id="filterExtra" type="text" name="extra" class="form-control" placeholder="Search terms"/>
                                 </div>
                             </div>
                             <div class="col-md-1">
@@ -77,7 +77,7 @@
                                 <th scope="col">#</th>
                                 <th scope="col">Owner</th>
                                 <th scope="col">Name</th>
-                                <th scope="col">Description</th>
+                                <th scope="col" style="max-width:450px">Description</th>
                                 <th scope="col" class="text-center">Is fork</th>
                                 <th scope="col" class="text-center">Created At</th>
                                 <th scope="col" class="text-center">License</th>
@@ -150,7 +150,7 @@
                                         '<td>' + (key + 1) + '</td>',
                                         '<td><img src="' + item.owner.avatar_url + '" style="height:30px"/> &nbsp; <a href="' + item.owner.html_url + '" target="_blank">' + item.owner.login + '</a><br/><span class="badge badge-secondary">' + item.owner.type + '</span></td>',
                                         '<td><a href="' + item.html_url + '" target="_blank">' + item.name + '</a>' + (isNew ? '<br/><span class="badge badge-primary">new</span>' : '') + '</td>',
-                                        '<td style="max-width:500px">' + item.description + '</td>',
+                                        '<td>' + item.description + '</td>',
                                         '<td class="text-center text-' + (true === item.fork ? 'success' : 'muted') + '">' + (true === item.fork ? '✔️' : '✗') + '</td>',
                                         '<td class="text-center"><a href="' + item.html_url + '/commits/' + item.default_branch  + '" target="_blank">' + item.created_at.replace(/^(\d{4})\-(\d{2})\-(\d{2})T.+$/, '$1-$2-$3') + '</a></td>',
                                         '<td class="text-center"><a href="' + item.html_url + '/blob/' + item.default_branch  + '/LICENSE" target="_blank">' + (item.license ? item.license.spdx_id : '-') + '</a></td>',
