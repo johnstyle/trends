@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8">
+    <title>Github trends</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <style type="text/css">
+        body { color: #fff; box-shadow: inset 0 0 5rem rgba(0, 0, 0, .5); background-color: #343a40; }
+        h1, h2, table.table tr th { text-shadow: 0 .05rem 0 rgba(0, 0, 0, .5); }
+        .table-responsive { box-shadow: 0 0 .5rem 0 rgba(0, 0, 0, .3); }
+        table.table { margin-bottom: 0; }
+        table.table td { vertical-align: middle; }
+        a, a:focus, a:hover { color: #fff; }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <main role="main" class="col-12 pt-3 pb-4 px-4">
+                <div class="d-flex flex-column flex-md-row align-items-center mb-3">
+                    <h2 class="my-0 mr-md-auto font-weight-normal">Github Trends</h2>
+                    <form id="filters" class="my-2 my-md-2 mr-md-3">
+                        <div class="form-row">
+                            <div class="col-md-2">
+                                <div class="input-group input-group-sm">
+                                    <div class="input-group-prepend">
+                                        <label class="input-group-text" for="filterLanguage">Language</label>
+                                    </div>
+                                    <input id="filterLanguage" type="text" value="php" name="language" class="form-control" placeholder="Language"/>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="input-group input-group-sm">
+                                    <div class="input-group-prepend">
+                                        <label class="input-group-text" for="filterDays">Days</label>
+                                    </div>
+                                    <input id="filterDays" type="number" min="0" value="30" name="days" class="form-control" placeholder="Days"/>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="input-group input-group-sm">
+                                    <div class="input-group-prepend">
+                                        <label class="input-group-text" for="filterStars">Stars</label>
+                                    </div>
+                                    <input id="filterStars" type="number" min="0" value="10" name="stars" class="form-control" placeholder="Stars"/>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="input-group input-group-sm">
+                                    <div class="input-group-prepend">
+                                        <label class="input-group-text" for="filterForks">Forks</label>
+                                    </div>
+                                    <div class="form-control">
+                                        <input id="filterForks" type="checkbox" name="forks" style="margin:3px auto 0;display:block;" placeholder="Forks" checked/>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="input-group input-group-sm">
+                                    <div class="input-group-prepend">
+                                        <label class="input-group-text" for="filterExtra">Extra</label>
+                                    </div>
+                                    <input id="filterExtra" type="text" name="extra" class="form-control" placeholder="Extra"/>
+                                </div>
+                            </div>
+                            <div class="col-md-1">
+                                <button type="submit" class="btn btn-sm btn-secondary mb-2">Filter</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="table-responsive">
+                    <table id="results" class="table table-bordered table-striped table-dark">
+                        <thead class="thead-dark">
+                            <tr>
+                                <th scope="col">#</th>
+                                <th scope="col">Owner</th>
+                                <th scope="col">Name</th>
+                                <th scope="col">Description</th>
+                                <th scope="col" class="text-center">Is fork</th>
+                                <th scope="col" class="text-center">Created At</th>
+                                <th scope="col" class="text-center">License</th>
+                                <th scope="col" class="text-right">Stars</th>
+                                <th scope="col" class="text-right">Forks</th>
+                                <th scope="col" class="text-right">Watchers</th>
+                                <th scope="col" class="text-right">Issues</th>
+                                <th scope="col" class="text-right">Share</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </main>
+        </div>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js" integrity="sha384-ZvpUoO/+PpLXR1lu4jmpXWu80pZlYUAfxl5NsBMWOEPSjUn/6Z/hRTt8+pR6L4N2" crossorigin="anonymous"></script>
+    <script src="https://cdn.datatables.net/1.10.22/js/jquery.dataTables.min.js" integrity="sha384-XnTxmviuqUy3cHBf+lkYWuTSDlhxCDxd9RgSo5zvzsCq93P9xNa6eENuAITCwxNh" crossorigin="anonymous"></script>
+
+    <script>
+        $(function() {
+            var dataTable;
+            var formFilters = $('form#filters');
+            var tableResults = $('table#results');
+
+            function getTimestamp() {
+                return Math.round(new Date() / 1000);
+            }
+
+            function getDatePreviusDays(days) {
+                var date = new Date();
+                date.setDate(date.getDate() - days);
+                return date.toJSON().slice(0, 10);
+            }
+
+            function fetchResults() {
+                var filters = {
+                    'stars': formFilters.find('[name="stars"]').val(),
+                    'language': formFilters.find('[name="language"]').val(),
+                    'days': formFilters.find('[name="days"]').val(),
+                    'extra': formFilters.find('[name="extra"]').val(),
+                    'forks': formFilters.find('[name="forks"]').is(':checked'),
+                };
+
+                localStorage.setItem('search', JSON.stringify(filters));
+
+                jQuery.getJSON(
+                    'https://api.github.com/search/repositories' +
+                    '?sort=stars' +
+                    '&order=desc' +
+                    '&per_page=100' +
+                    '&q=language:' + filters.language + ' created:>' + getDatePreviusDays(filters.days) + ' stars:>' + filters.stars + ' fork:' + (filters.forks ? 'true' : 'false') + ' ' + filters.extra,
+                    function(data) {
+                        var history = JSON.parse(localStorage.getItem('history') || "{}");
+                        var tbody = tableResults.find('tbody');
+                        tbody.find('tr').remove();
+
+                        if (dataTable) {
+                            dataTable.destroy();
+                            tbody.empty();
+                        }
+
+                        $.each(data.items, function(key, item) {
+                                if (undefined === history[item.id]) {
+                                    history[item.id] = getTimestamp();
+                                }
+                                var isNew = history[item.id] > getTimestamp() - 3600;
+                                $('<tr/>', {
+                                    html: [
+                                        '<td>' + (key + 1) + '</td>',
+                                        '<td><img src="' + item.owner.avatar_url + '" style="height:30px"/> &nbsp; <a href="' + item.owner.html_url + '" target="_blank">' + item.owner.login + '</a><br/><span class="badge badge-secondary">' + item.owner.type + '</span></td>',
+                                        '<td><a href="' + item.html_url + '" target="_blank">' + item.name + '</a>' + (isNew ? '<br/><span class="badge badge-primary">new</span>' : '') + '</td>',
+                                        '<td style="max-width:500px">' + item.description + '</td>',
+                                        '<td class="text-center text-' + (true === item.fork ? 'success' : 'muted') + '">' + (true === item.fork ? '✔️' : '✗') + '</td>',
+                                        '<td class="text-center"><a href="' + item.html_url + '/commits/' + item.default_branch  + '" target="_blank">' + item.created_at.replace(/^(\d{4})\-(\d{2})\-(\d{2})T.+$/, '$1-$2-$3') + '</a></td>',
+                                        '<td class="text-center"><a href="' + item.html_url + '/blob/' + item.default_branch  + '/LICENSE" target="_blank">' + (item.license ? item.license.spdx_id : '-') + '</a></td>',
+                                        '<td class="text-right"><a href="' + item.html_url + '/stargazers" target="_blank">' + item.stargazers_count + '</a></td>',
+                                        '<td class="text-right"><a href="' + item.html_url + '/network/members" target="_blank">' + item.forks_count + '</a></td>',
+                                        '<td class="text-right"><a href="' + item.html_url + '/watchers" target="_blank">' + item.watchers_count + '</a></td>',
+                                        '<td class="text-right"><a href="' + item.html_url + '/issues" target="_blank">' + item.open_issues + '</a></td>',
+                                        '<td class="text-right"><a href="https://twitter.com/intent/tweet?text=' + encodeURIComponent(item.full_name + ' - ' + item.description) + '&url=' + encodeURIComponent(item.html_url) + '&hashtags=' + encodeURIComponent(item.language + ',' + item.owner.login) + '" target="_blank" class="btn btn-sm btn-primary">Tweet</a></td>',
+                                    ].join('')
+                                }).appendTo(tbody);
+                            }
+                        );
+
+                        localStorage.setItem('history', JSON.stringify(history));
+
+                        dataTable = tableResults.DataTable({
+                            searching: false,
+                            paging: false,
+                            info: false,
+                        });
+                    }
+                );
+            }
+
+            $.each(JSON.parse(localStorage.getItem('search') || "{}"), function (name, value) {
+                var input = formFilters.find('[name="' + name + '"]');
+                if ('checkbox' === input.attr('type')) {
+                    input.prop('checked', value);
+                } else {
+                    input.val(value);
+                }
+            });
+
+            formFilters.on('submit', function (event) {
+                event.preventDefault();
+                fetchResults();
+                return false;
+            });
+
+            fetchResults();
+        });
+    </script>
+</body>
+</html>
+
